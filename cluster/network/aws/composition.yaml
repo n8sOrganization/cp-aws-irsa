@@ -1,0 +1,386 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aws.xnetworks.platformref.crossplane.io
+  labels:
+    cloud: aws
+spec:
+  compositeTypeRef:
+    apiVersion: platformref.crossplane.io/v1alpha1
+    kind: XNetwork
+  patchSets:
+  - name: providerConfigAws
+    patches:
+    - type: FromCompositeFieldPath
+      fromFieldPath: spec.providerConfig.aws
+      toFieldPath: spec.providerConfigRef.name
+  - name: network-id
+    patches:
+    - type: FromCompositeFieldPath
+      fromFieldPath: spec.id
+      toFieldPath: metadata.labels[networks.aws.platformref.crossplane.io/network-id]
+  resources:
+    - name: platformref-vpc
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: VPC
+        spec:
+          forProvider:
+            region: us-west-2
+            cidrBlock: 192.168.0.0/16
+            enableDnsSupport: true
+            enableDnsHostNames: true
+            tags:
+              Owner: Platform Team
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: gateway
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: InternetGateway
+        spec:
+          forProvider:
+            region: us-west-2
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: subnet-public-west-2a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            zone: us-west-2a
+            access: public
+        spec:
+          forProvider:
+            region: us-west-2
+            mapPublicIpOnLaunch: true
+            cidrBlock: 192.168.0.0/18
+            vpcIdSelector:
+              matchControllerRef: true
+            availabilityZone: us-west-2a
+            tags:
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[0]
+    - name: subnet-public-west-2b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            zone: us-west-2b
+            access: public
+        spec:
+          forProvider:
+            region: us-west-2
+            mapPublicIpOnLaunch: true
+            cidrBlock: 192.168.64.0/18
+            vpcIdSelector:
+              matchControllerRef: true
+            availabilityZone: us-west-2b
+            tags:
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[1]
+    - name: subnet-private-west-2a
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            zone: us-west-2a
+            access: private
+        spec:
+          forProvider:
+            region: us-west-2
+            cidrBlock: 192.168.128.0/18
+            vpcIdSelector:
+              matchControllerRef: true
+            availabilityZone: us-west-2a
+            tags:
+              shared: ""
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.shared
+          transforms:
+            - type: string
+              string:
+                fmt: "kubernetes.io/cluster/%s"
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[2]
+    - name: subnet-private-west-2b
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Subnet
+        metadata:
+          labels:
+            zone: us-west-2b
+            access: private
+        spec:
+          forProvider:
+            region: us-west-2
+            cidrBlock: 192.168.192.0/18
+            vpcIdSelector:
+              matchControllerRef: true
+            availabilityZone: us-west-2b
+            tags:
+              shared: ""
+              kubernetes.io/role/elb: "1"
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.shared
+          transforms:
+            - type: string
+              string:
+                fmt: "kubernetes.io/cluster/%s"
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.subnetIds[3]
+    - name: routeTable
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTable
+        spec:
+          forProvider:
+            region: us-west-2
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: route
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: Route
+        spec:
+          forProvider:
+            region: us-west-2
+            destinationCidrBlock: 0.0.0.0/0
+            gatewayIdSelector:
+              matchControllerRef: true
+            routeTableIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: RouteTableAssociation-1
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            region: us-west-2
+            destinationCidrBlock: 0.0.0.0/0
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                zone: us-west-2a
+                access: public
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: RouteTableAssociation-2
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            region: us-west-2
+            destinationCidrBlock: 0.0.0.0/0
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                zone: us-west-2b
+                access: public
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: RouteTableAssociation-3
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            region: us-west-2
+            destinationCidrBlock: 0.0.0.0/0
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                zone: us-west-2a
+                access: private
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: RouteTableAssociation-4
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: RouteTableAssociation
+        spec:
+          forProvider:
+            region: us-west-2
+            destinationCidrBlock: 0.0.0.0/0
+            routeTableIdSelector:
+              matchControllerRef: true
+            subnetIdSelector:
+              matchControllerRef: true
+              matchLabels:
+                zone: us-west-2b
+                access: private
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: MainRouteTableAssociation
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: MainRouteTableAssociation
+        spec:
+          forProvider:
+            region: us-west-2
+            routeTableIdSelector:
+              matchControllerRef: true
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+    - name: securityGroup
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroup
+        spec:
+          forProvider:
+            region: us-west-2
+            name: allow_db_access
+            description: Allow DB inbound traffic
+            tags:
+              Name: allow_db_access
+            vpcIdSelector:
+              matchControllerRef: true
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: PatchSet
+          patchSetName: network-id
+        - fromFieldPath: spec.id
+          toFieldPath: spec.forProvider.tags.Name
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.securityGroupIds[0]
+    - name: securityGroupRule-DBports-1
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupRule
+        spec:
+          forProvider:
+            type: ingress
+            securityGroupIdSelector:
+              matchControllerRef: true
+            region: us-west-2
+            cidrBlocks:
+            - 0.0.0.0/0
+            protocol: tcp
+            fromPort: 5432
+            toPort: 5432
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.tags.Name
+    - name: securityGroupRule-DBports-2
+      base:
+        apiVersion: ec2.aws.upbound.io/v1beta1
+        kind: SecurityGroupRule
+        spec:
+          forProvider:
+            type: ingress
+            securityGroupIdSelector:
+              matchControllerRef: true
+            region: us-west-2
+            cidrBlocks:
+            - 0.0.0.0/0
+            protocol: tcp
+            fromPort: 3306
+            toPort: 3306
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.tags.Name
+

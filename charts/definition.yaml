@@ -1,0 +1,56 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xcharts.platformref.crossplane.io
+spec:
+  group: platformref.crossplane.io
+  names:
+    kind: XChart
+    plural: xcharts
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          status:
+            description: Freeform field to patch between resource templates
+            type: object
+            properties:
+              values:
+                description: Freeform field to pass values
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+          spec:
+            type: object
+            properties:
+              values:
+                description: Freeform field to pass values
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              secretNamespace:
+                type: string
+                description: Namespace for chart
+              chartNamespace:
+                type: string
+                description: Namespace for chart
+              providerConfig:
+                type: object
+                description: Helm Provider Config
+                properties:
+                  k8s:
+                    type: string
+                  helm:
+                    type: string
+                  aws:
+                    type: string
+                  azure:
+                    type: string
+                  gcp:
+                    type: string
+
+
+
+

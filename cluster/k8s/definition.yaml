@@ -1,0 +1,86 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xk8s.platformref.crossplane.io
+spec:
+  group: platformref.crossplane.io
+  names:
+    kind: XK8s
+    plural: xk8s
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            status:
+              description: Freeform field to patch between resource templates
+              type: object
+              properties:
+                values:
+                  description: Freeform field to pass values
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+            spec:
+              type: object
+              properties:
+                providerConfig:
+                  type: object
+                  properties:
+                    aws:
+                      type: string
+                      description: Name of the aws providerConfig
+                    azure:
+                      type: string
+                      description: Name of the azure providerConfig
+                    gcp:
+                      type: string
+                      description: Name of the gcp providerConfig
+                values:
+                  description: Freeform field to patch between resource templates
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                subnetIds:
+                  type: array
+                  items:
+                    type: string
+                securityGroupIds:
+                  type: array
+                  items:
+                    type: string
+                claim:
+                  type: object
+                  properties:
+                    namespace:
+                      type: string
+                      description: namespace of XR, patched from claim.
+                id:
+                  type: string
+                  description: ID of this Cluster that other objects will use to refer to it.
+                parameters:
+                  type: object
+                  description: EKS configuration parameters.
+                  properties:
+                    nodes:
+                      type: object
+                      description: EKS node configuration parameters.
+                      properties:
+                        count:
+                          type: integer
+                          description: Desired node count, from 1 to 100.
+                        size:
+                          type: string
+                          description: Size of node.
+                          enum:
+                          - small
+                          - medium
+                          - large
+                      required:
+                      - count
+                      - size
+                  required:
+                  - nodes
+              required:
+              - parameters

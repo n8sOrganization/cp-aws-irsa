@@ -1,0 +1,11 @@
+apiVersion: platformref.crossplane.io/v1alpha1
+kind: Cluster
+metadata:
+  name: eks-dev-1
+spec:
+  id: eks-dev-1
+  parameters:
+    nodes:
+      count: 1
+      size: medium
+  cloud: aws

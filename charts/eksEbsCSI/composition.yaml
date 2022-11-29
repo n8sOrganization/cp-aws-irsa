@@ -1,0 +1,121 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xeksebscsi.charts.platformref.crossplane.io
+  labels:
+    chart: eksEbsCSI
+spec:
+  compositeTypeRef:
+    apiVersion: platformref.crossplane.io/v1alpha1
+    kind: XChart
+  patchSets:
+  - name: providerConfigAws
+    patches:
+    - type: FromCompositeFieldPath
+      fromFieldPath: spec.providerConfig.aws
+      toFieldPath: spec.providerConfigRef.name
+  resources:
+### AWS IAM resources for aws-ebs-csi-driver IRSA
+    - name: csiRole
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          labels:
+            role: "csiRole"
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.values.csiRole
+        - type: CombineFromComposite
+          combine:
+            variables:
+            - fromFieldPath: spec.values.accountID
+            - fromFieldPath: spec.values.oidc
+            - fromFieldPath: spec.values.oidc
+            - fromFieldPath: spec.values.oidc
+            strategy: string
+            string:
+              fmt: |
+                {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Federated": "arn:aws:iam::%s:oidc-provider/%s"
+                      },
+                      "Action": "sts:AssumeRoleWithWebIdentity",
+                      "Condition": {
+                        "StringEquals": {
+                          "%s:aud": "sts.amazonaws.com",
+                          "%s:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+                        }
+                      }
+                    }
+                  ]
+                }
+          toFieldPath: spec.forProvider.assumeRolePolicy
+          policy:
+            fromFieldPath: Required
+    - name: csiRolePolicyAttachment
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        spec:
+          forProvider:
+            policyArn: arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+            roleSelector:
+              matchControllerRef: true
+              matchLabels:
+                role: csiRole
+      patches:
+        - type: PatchSet
+          patchSetName: providerConfigAws
+### Install ebsCSI chart
+    - name: ebsCSIChart
+      base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: Release
+        spec:
+          forProvider:
+            namespace: kube-system
+            chart:
+              name: aws-ebs-csi-driver
+              repository: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+      patches:
+        - type: CombineFromComposite
+          combine:
+            variables:
+            - fromFieldPath: spec.values.accountID
+            - fromFieldPath: status.values.csiRole
+            strategy: string
+            string:
+              fmt: "arn:aws:iam::%s:role/%s"
+          toFieldPath: spec.forProvider.values.controller.serviceAccount.annotations[eks.amazonaws.com/role-arn]
+          policy:
+            fromFieldPath: Required
+        - type: CombineFromComposite
+          combine:
+            variables:
+            - fromFieldPath: spec.values.accountID
+            - fromFieldPath: status.values.csiRole
+            strategy: string
+            string:
+              fmt: "arn:aws:iam::%s:role/%s"
+          toFieldPath: spec.forProvider.values.node.serviceAccount.annotations[eks.amazonaws.com/role-arn]
+          policy:
+            fromFieldPath: Required
+        - fromFieldPath: metadata.uid
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-ebscsi"
+        - fromFieldPath: spec.secretNamespace
+          toFieldPath: spec.writeConnectionSecretToRef.namespace
+        - fromFieldPath: spec.providerConfig.helm
+          toFieldPath: spec.providerConfigRef.name
+

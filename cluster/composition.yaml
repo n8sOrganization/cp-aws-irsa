@@ -1,0 +1,61 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xclusters.platformref.crossplane.io
+spec:
+  compositeTypeRef:
+    apiVersion: platformref.crossplane.io/v1alpha1
+    kind: XCluster
+  resources:
+    - name: compositeNetwork
+      base:
+        apiVersion: platformref.crossplane.io/v1alpha1
+        kind: XNetwork
+        spec:
+          providerConfig:
+            aws: default #<<<< Change this to match the name of your aws provider config
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: spec.id
+        - fromFieldPath: spec.cloud
+          toFieldPath: compositionSelector.matchLabels.cloud
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.subnetIds
+          toFieldPath: status.subnetIds
+          policy:
+            fromFieldPath: Required
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.securityGroupIds
+          toFieldPath: status.securityGroupIds
+          policy:
+            fromFieldPath: Required
+        - fromFieldPath: spec.providerConfig.aws
+          toFieldPath: spec.providerConfig.aws
+    - name: compositeK8s
+      base:
+        apiVersion: platformref.crossplane.io/v1alpha1
+        kind: XK8s
+        spec:
+          providerConfig:
+            aws: default #<<<< Change this to match the name of your aws provider config
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: spec.id
+        - fromFieldPath: spec.cloud
+          toFieldPath: compositionSelector.matchLabels.cloud
+        - fromFieldPath: spec.claimRef.namespace
+          toFieldPath: spec.claim.namespace
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.parameters.nodes.count
+        - fromFieldPath: spec.parameters.nodes.size
+          toFieldPath: spec.parameters.nodes.size
+        - fromFieldPath: spec.providerConfig.aws
+          toFieldPath: spec.providerConfig.aws
+        - fromFieldPath: status.subnetIds
+          toFieldPath: spec.subnetIds
+          policy:
+            fromFieldPath: Required
+        - fromFieldPath: status.securityGroupIds
+          toFieldPath: spec.securityGroupIds
+          policy:
+            fromFieldPath: Required
