@@ -1,5 +1,7 @@
 # Example crossplane config for AWS EKS IRSA
 
+vRelevant blog post: https://vrelevant.net/crossplane-all-the-patches-with-aws-irsa-config/
+
 ## Prerequisites
  1. K8s cluster
  2. kubectl cli
