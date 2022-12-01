@@ -8,6 +8,8 @@ _Note: The better practice would be to use a Crossplane Configuration Package to
  3. AWS account
  4. aws cli
 
+(All steps assume you are working from the root of the repo clone.)
+
 ### 1. Install Crossplane
 ```console 
 kubectl create namespace crossplane-system
