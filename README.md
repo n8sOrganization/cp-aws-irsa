@@ -49,7 +49,7 @@ kubectl apply -f examples/aws-providerConfig.yaml
 ```console
 kubectl apply -k config/. 
 ```
-### 4. Deploy
+### 4. Deploy EKS cluster with IRSA authorized EBS CSI driver
 
 ```console
 kubectl create -f examples/cluster-claim.yaml
