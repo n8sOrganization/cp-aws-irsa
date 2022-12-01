@@ -118,4 +118,3 @@ spec:
           toFieldPath: spec.writeConnectionSecretToRef.namespace
         - fromFieldPath: spec.providerConfig.helm
           toFieldPath: spec.providerConfigRef.name
-
