@@ -25,7 +25,7 @@ helm repo update
 helm install crossplane --namespace crossplane-system crossplane-stable/crossplane
 ```
  
-### 2. Create cred config for provider-aws
+### 2. Create cred config for provider-aws and configure provider
 ```console 
 AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)" > creds.conf
 ```
@@ -35,5 +35,25 @@ kubectl create secret generic aws-creds -n upbound-system --from-file=credential
 ```
 
 ```console 
-kubectl apply -f examples/aws-default-provider.yaml
+kubectl apply -f examples/provider-aws.yaml
 ```
+
+```console 
+kubectl apply -f examples/aws-providerConfig.yaml
+```
+
+### 3. Install XRDs and Compositions
+
+```console
+kubectl apply -k config/. 
+```
+### 4. Deploy
+
+```console
+kubectl create -f examples/cluster-claim.yaml
+```
+
+```console
+watch kubectl get managed
+```
+
