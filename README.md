@@ -1,6 +1,6 @@
 # Example crossplane config for AWS EKS IRSA
 
-## Prerequities
+## Prerequisites
  1. K8s cluster
  2. kubectl cli
  3. AWS account
