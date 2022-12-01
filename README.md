@@ -1,7 +1,5 @@
 # Example crossplane config for AWS EKS IRSA
 
-_Note: The better practice would be to use a Crossplane Configuration Package to apply this config. But that requires an image registry with a trusted and valid signed cert. To make it easier to apply this config, I am prroviding instructions to apply the required manifests via Kustomize._
-
 ## Prerequities
  1. K8s cluster
  2. kubectl cli
@@ -45,6 +43,8 @@ kubectl apply -f examples/aws-providerConfig.yaml
 ```
 
 ### 3. Install XRDs and Compositions
+
+_Note: The better practice would be to use a Crossplane Configuration Package to apply this config. But that requires an image registry with a trusted and valid signed cert. To make it easier to apply this config, I am prroviding instructions to apply the required manifests via Kustomize._
 
 ```console
 kubectl apply -k config/. 
