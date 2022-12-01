@@ -1,0 +1,9 @@
+resources:
+- charts/definition.yaml
+- charts/eksEbsCSI/composition.yaml
+- cluster/composition.yaml
+- cluster/definition.yaml
+- cluster/k8s/definition.yaml
+- cluster/k8s/aws/eks/composition.yaml
+- cluster/network/definition.yaml
+- cluster/network/aws/composition.yaml
