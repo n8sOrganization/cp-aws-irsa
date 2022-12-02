@@ -33,7 +33,7 @@ AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure g
 ```
 
 ```console
-kubectl create secret generic aws-creds -n upbound-system --from-file=credentials=./creds.conf
+kubectl create secret generic aws-creds -n crossplane-system --from-file=credentials=./creds.conf
 ```
 
 ```console 
