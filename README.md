@@ -2,6 +2,8 @@
 
 vRelevant blog post: https://vrelevant.net/crossplane-all-the-patches-with-aws-irsa-config/
 
+_Note: To keep this setup simple,I'm using Kustomize to apply the Crossplane Provider-aws, XRDs, and Compositions. Using a Crossplane Configuration would be the best practice for production use. See the Crossplane docs for more info on Configuration._
+
 ## Prerequisites
  1. K8s cluster
  2. kubectl cli
@@ -11,6 +13,7 @@ vRelevant blog post: https://vrelevant.net/crossplane-all-the-patches-with-aws-i
 (All steps assume you are working from the root of the repo clone.)
 
 ### 1. Install Crossplane
+
 ```console 
 kubectl create namespace crossplane-system
 ```
@@ -34,6 +37,7 @@ kubectl apply -k config/.
 ```
  
 ### 3. Create cred config for provider-aws and configure provider
+
 ```console 
 AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)" > creds.conf
 ```
@@ -55,4 +59,3 @@ kubectl create -f examples/cluster-claim.yaml
 ```console
 watch kubectl get managed
 ```
-
