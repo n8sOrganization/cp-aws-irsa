@@ -7,3 +7,4 @@ resources:
 - cluster/k8s/aws/eks/composition.yaml
 - cluster/network/definition.yaml
 - cluster/network/aws/composition.yaml
+- provider/provider-aws.yaml
