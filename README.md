@@ -36,7 +36,7 @@ helm install crossplane --namespace crossplane-system crossplane-stable/crosspla
 kubectl apply -k config/. 
 ```
  
-### 3. Create cred config for provider-aws and configure provider
+### 3. Create creddential secret for provider-aws and configure provider
 
 ```console 
 AWS_PROFILE=default && echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $AWS_PROFILE)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $AWS_PROFILE)" > creds.conf
@@ -47,7 +47,7 @@ kubectl create secret generic aws-creds -n crossplane-system --from-file=credent
 ```
 
 ```console 
-kubectl apply -f provider/aws-providerConfig.yaml
+kubectl apply -f config/provider/aws-providerConfig.yaml
 ```
 
 ### 4. Deploy
