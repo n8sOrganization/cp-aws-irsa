@@ -2,7 +2,8 @@
 
 vRelevant blog post: https://vrelevant.net/crossplane-all-the-patches-with-aws-irsa-config/
 
-_Note: To keep this setup simple,I'm using Kustomize to apply the Crossplane Provider-aws, XRDs, and Compositions. Using a Crossplane Configuration would be the best practice for production use. See the Crossplane docs for more info on Configuration._
+> [!NOTE]
+> _To keep this setup simple, I'm using Kustomize to apply the Crossplane Provider-aws, XRDs, and Compositions. Using a Crossplane Configuration would be the best practice for production use. See the Crossplane docs for more info on Configuration._
 
 ## Prerequisites
  1. K8s cluster
